@@ -12,7 +12,7 @@ function Login() {
            action="">
             <input className='bg-[#05070f] outline-0 rounded-sm w-full px-3 py-2 ' type="text" placeholder='Username/Email' />
             <input className='bg-[#05070f] rounded-sm w-full px-3 py-2 ' type="password" placeholder='Password' />
-            <input className=" bg-blue-700 font-bold text-xl rounded-sm w-full px-3 py-2" type="submit" value="Login" />
+            <input className=" bg-blue-700 font-bold text-xl rounded-sm w-full px-3 py-2" type="submit" value="Log in" />
 
             <div className=' text-neutral-500 w-full text-center text-xl'>
               <h1>----------OR----------</h1>
@@ -20,7 +20,7 @@ function Login() {
 
             <a className='bg-[#05070f] rounded-sm w-full px-3 py-2 text-center text-xl text-neutral-400 ' href="#">Continue with Google</a>
 
-            <a className='text-neutral-500' href="#">Forgot password?</a>
+            <a className='text-neutral-500 underline' href="#">Forgot password?</a>
           </form>
 
           <h3><span className='text-neutral-500 '>Don't have an account?</span> <a className='text-blue-400 font-bold' href="#">Sign up</a></h3>
