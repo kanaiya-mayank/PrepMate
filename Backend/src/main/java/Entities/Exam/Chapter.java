@@ -1,5 +1,4 @@
 package Entities.Exam;
-
 import jakarta.persistence.*;
 
 import java.util.Set;
