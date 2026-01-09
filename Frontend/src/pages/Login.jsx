@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons'
 import { faGoogle } from '@fortawesome/free-brands-svg-icons'
 
-import { auth, googleProvider } from '../firebase/firebaseConfig';
+import { auth, googleProvider } from '../config/firebaseConfig';
 import { 
   signInWithPopup, 
   signInWithEmailAndPassword, 
@@ -79,7 +79,7 @@ function Login() {
               />
               <input
                 onChange={ e=> setPassword(e.target.value) }
-                className="bg-[#05070f] pl-10 rounded-md w-full px-3 py-3 text-neutral-300"
+                className="bg-[#05070f] pl-10 outline-0 rounded-md w-full px-3 py-3 text-neutral-300"
                 type="password"
                 placeholder="Password"
               />
@@ -87,7 +87,7 @@ function Login() {
 
             <button
               onClick={ (e)=>handleEmailAuth(e) }
-              className="bg-blue-600 hover:bg-blue-700 transition font-bold text-xl rounded-md w-full px-3 py-3"
+              className="bg-blue-600 hover:cursor-pointer hover:bg-blue-700 transition font-bold text-xl rounded-md w-full px-3 py-3"
             >
               Log In </button>
 
