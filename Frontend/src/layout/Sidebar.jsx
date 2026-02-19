@@ -1,192 +1,149 @@
-/**
- * Sidebar.jsx
- * ─────────────────────────────────────────────────────────────────────────────
- * Collapsible sidebar for PrepMate. Expands on hover.
- * Props:
- *   isExpanded   — boolean, controlled by parent
- *   setIsExpanded — setter
- *   activeSection — string id of current page (e.g. 'dashboard', 'daily')
- *   onNavigate   — (sectionId: string) => void  called when nav item clicked
- * ─────────────────────────────────────────────────────────────────────────────
- */
+import React, { useState, useMemo, useCallback } from 'react';
+import { Plus, Flame, Target, ListChecks, Clock, Trash2, CheckCircle2 } from 'lucide-react';
+import DashboardLayout from '../layout/DashboardLayout';
+import { motion, AnimatePresence } from 'framer-motion';
 
-import React from 'react';
-import {
-  LayoutGrid, Target, CalendarDays, CalendarRange,
-  CalendarCheck, RefreshCw, ClipboardList, Timer,
-  FolderOpen, CheckSquare, Zap, BookOpen,
-  BarChart2, LogOut, Brain
-} from 'lucide-react';
-import { useAuth } from '../context/authContext';
-import { logout }  from '../firebase/authService';
-import { useNavigate } from 'react-router-dom';
-
-const NAV_GROUPS = [
-  {
-    label: 'Overview',
-    items: [
-      { id: 'dashboard',   icon: LayoutGrid,    label: 'Dashboard'       },
-    ],
-  },
-  {
-    label: 'Planning',
-    items: [
-      { id: 'yearly',      icon: CalendarDays,  label: 'Yearly Planner'  },
-      { id: 'monthly',     icon: CalendarRange, label: 'Monthly Planner' },
-      { id: 'weekly',      icon: CalendarCheck, label: 'Weekly Planner'  },
-      { id: 'daily',       icon: Target,        label: 'Daily Planner'   },
-    ],
-  },
-  {
-    label: 'Study',
-    items: [
-      { id: 'revision',    icon: RefreshCw,     label: 'Revision',   badge: 3 },
-      { id: 'tests',       icon: ClipboardList, label: 'Tests & Errors'  },
-      { id: 'timers',      icon: Timer,         label: 'Timing Tools'    },
-    ],
-  },
-  {
-    label: 'Resources',
-    items: [
-      { id: 'resources',   icon: FolderOpen,    label: 'File Manager'    },
-    ],
-  },
-  {
-    label: 'Productivity',
-    items: [
-      { id: 'habits',      icon: CheckSquare,   label: 'Habit Tracker'   },
-      { id: 'distraction', icon: Zap,           label: 'Distraction Log' },
-    ],
-  },
-  {
-    label: 'Reports',
-    items: [
-      { id: 'reflection',  icon: BookOpen,      label: 'Reflection'      },
-      { id: 'reports',     icon: BarChart2,     label: 'Weekly Report'   },
-    ],
-  },
+const MOCK_DAILY_TASKS = [
+  { id: 1, subject: 'Algorithms', title: 'Solve 20 problems – Trees & Graphs', done: true, time: '2h 30m' },
+  { id: 2, subject: 'Operating Systems', title: 'Read OS Chapter 4 – Memory Management', done: true, time: '1h 30m' },
+  { id: 3, subject: 'DBMS', title: 'Practice Normalization exercises', done: false, time: '1h 00m' },
 ];
 
-const Sidebar = ({ isExpanded, setIsExpanded, activeSection, onNavigate }) => {
-  const { user } = useAuth();
-  const navigate  = useNavigate();
+const DailyPlanner = () => {
+  const [tasks, setTasks] = useState(MOCK_DAILY_TASKS);
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  const displayName  = user?.displayName || user?.email?.split('@')[0] || 'User';
-  const avatarLetter = displayName.charAt(0).toUpperCase();
+  const stats = useMemo(() => {
+    const completed = tasks.filter(t => t.done).length;
+    return {
+      completed,
+      total: tasks.length,
+      percent: tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0
+    };
+  }, [tasks]);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login', { replace: true });
-    } catch (err) {
-      console.error('[Sidebar] Logout failed:', err.message);
-    }
+  const toggleTask = useCallback((id) => {
+    setTasks(prev => prev.map(t => 
+      t.id === id ? { ...t, done: !t.done } : t
+    ));
+  }, []);
+
+  const deleteTask = (id) => {
+    setTasks(prev => prev.filter(t => t.id !== id));
   };
 
   return (
-    <aside
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
-      className={`
-        relative z-50 h-screen flex flex-col shrink-0
-        bg-[#0a0d1c]/90 backdrop-blur-2xl
-        border-r border-white/[0.05]
-        transition-all duration-300 ease-in-out
-        ${isExpanded ? 'w-60 shadow-[4px_0_40px_rgba(0,0,0,0.6)]' : 'w-[68px]'}
-      `}
+    <DashboardLayout 
+      isExpanded={isExpanded} 
+      setIsExpanded={setIsExpanded} 
+      activeSection="daily"
     >
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-white/[0.05] shrink-0">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600
-          flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/25">
-          <Brain size={18} className="text-white" />
-        </div>
-        {isExpanded && (
-          <span className="text-white font-black text-lg tracking-tight whitespace-nowrap
-            animate-in fade-in slide-in-from-left-2 duration-200">
-            Prep<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Mate</span>
-          </span>
-        )}
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2"
-        style={{ scrollbarWidth: 'none' }}>
-        {NAV_GROUPS.map((group) => (
-          <div key={group.label}>
-            {isExpanded ? (
-              <div className="px-4 pt-4 pb-1">
-                <span className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-600">
-                  {group.label}
-                </span>
-              </div>
-            ) : <div className="h-3" />}
-
-            {group.items.map((item) => {
-              const Icon     = item.icon;
-              const isActive = activeSection === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onNavigate(item.id)}
-                  title={!isExpanded ? item.label : undefined}
-                  className={`
-                    w-full flex items-center gap-3.5 px-[18px] py-2.5
-                    text-left relative transition-all duration-150 group
-                    ${isActive
-                      ? 'text-white bg-blue-500/10 border-r-2 border-blue-500'
-                      : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.04]'
-                    }
-                  `}
-                >
-                  <Icon size={18} className={`shrink-0 transition-colors
-                    ${isActive ? 'text-blue-400' : 'group-hover:text-slate-300'}`} />
-                  {isExpanded && (
-                    <span className="text-[13px] font-medium whitespace-nowrap animate-in fade-in duration-150">
-                      {item.label}
-                    </span>
-                  )}
-                  {item.badge && isExpanded && (
-                    <span className="ml-auto text-[10px] font-black bg-red-500 text-white
-                      px-1.5 py-0.5 rounded-full leading-none">{item.badge}</span>
-                  )}
-                  {item.badge && !isExpanded && (
-                    <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-red-500" />
-                  )}
-                </button>
-              );
-            })}
+      <div className="p-6 md:p-8 max-w-5xl mx-auto min-h-screen text-slate-200">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+          <div>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase text-white">
+              Daily <span className="text-blue-500 not-italic">Planner</span>
+            </h1>
+            <p className="text-slate-500 text-sm mt-1 font-medium">Focus on today's execution.</p>
           </div>
-        ))}
-      </nav>
+          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-blue-500/20 text-sm">
+            <Plus size={18} strokeWidth={3} />
+            Add Task
+          </button>
+        </div>
 
-      {/* User + Logout */}
-      <div className="shrink-0 border-t border-white/[0.05] p-3">
-        <div className={`flex items-center gap-2.5 p-2 rounded-xl
-          ${isExpanded ? 'justify-between' : 'justify-center'}`}>
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600
-              flex items-center justify-center text-xs font-bold text-white shrink-0">
-              {avatarLetter}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+          <div className="bg-[#0a0f1e]/60 border border-white/[0.06] p-6 rounded-[2rem] flex items-center justify-between backdrop-blur-sm">
+            <div>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Daily Progress</p>
+              <h2 className="text-3xl font-black text-white">{stats.percent}%</h2>
+              <p className="text-xs text-emerald-400 font-bold mt-1 uppercase tracking-tight">
+                {stats.completed} of {stats.total} Tasks Completed
+              </p>
             </div>
-            {isExpanded && (
-              <div className="min-w-0 animate-in fade-in duration-200">
-                <p className="text-xs font-semibold text-slate-300 truncate">{displayName}</p>
-                <p className="text-[10px] text-slate-600 truncate">{user?.email}</p>
-              </div>
-            )}
+            <div className="relative w-16 h-16">
+                <svg className="w-full h-full -rotate-90">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="6" className="text-white/5" />
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="6" className="text-blue-500" 
+                        strokeDasharray="175.9" strokeDashoffset={175.9 - (175.9 * stats.percent) / 100} strokeLinecap="round" />
+                </svg>
+                <Target size={20} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-400" />
+            </div>
           </div>
-          {isExpanded && (
-            <button onClick={handleLogout} title="Sign out"
-              className="text-slate-600 hover:text-red-400 transition-colors
-                p-1.5 rounded-lg hover:bg-red-500/10 shrink-0">
-              <LogOut size={15} />
-            </button>
-          )}
+
+          <div className="bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 p-6 rounded-[2rem] flex items-center gap-5 backdrop-blur-sm">
+            <div className="w-14 h-14 rounded-2xl bg-orange-500/20 flex items-center justify-center">
+              <Flame size={28} className="text-orange-500" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] mb-1">Consistency</p>
+              <h2 className="text-3xl font-black text-white">7 Days</h2>
+              <p className="text-xs text-slate-500 font-medium tracking-tight">Current Streak maintained 🔥</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Task List */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <ListChecks size={18} className="text-blue-400" />
+            <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-500">Execution Queue</h3>
+          </div>
+
+          <div className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {tasks.map((task) => (
+                <motion.div
+                  key={task.id}
+                  layout
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className={`group flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 
+                    ${task.done 
+                      ? 'bg-white/[0.02] border-white/[0.03] opacity-50' 
+                      : 'bg-white/[0.04] border-white/[0.06] hover:border-blue-500/30'}`}
+                >
+                  <button 
+                    onClick={() => toggleTask(task.id)}
+                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all
+                      ${task.done ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600 hover:border-blue-500'}`}
+                  >
+                    {task.done && <CheckCircle2 size={14} className="text-white" strokeWidth={3} />}
+                  </button>
+
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-semibold truncate transition-all
+                      ${task.done ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+                      {task.title}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-[10px] font-bold uppercase text-blue-400 tracking-wider">
+                        {task.subject}
+                      </span>
+                      <span className="text-[10px] text-slate-600 flex items-center gap-1">
+                        <Clock size={10} /> {task.time}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => deleteTask(task.id)}
+                    className="p-2 text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
-    </aside>
+    </DashboardLayout>
   );
 };
 
-export default Sidebar;
+export default DailyPlanner;

@@ -36,6 +36,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/authContext';
 import Login    from './pages/Login';
 import SignUp   from './pages/SignUp';
+import RevisionPage from './pages/RevisionPage';
+import DailyPlanner from './pages/DailyPlanner';
 
 // Lazy-load heavy pages (performance best practice)
 const Dashboard = React.lazy(() => import('./pages/dashboard'));
@@ -93,6 +95,16 @@ const App = () => (
 
           {/* 404 fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
+
+          <Route
+            path="/revision"
+            element={<ProtectedRoute><RevisionPage /></ProtectedRoute>}
+          />
+
+          <Route
+          path="/daily"
+          element={<ProtectedRoute><DailyPlanner /></ProtectedRoute>}
+          />
         </Routes>
       </React.Suspense>
     </AuthProvider>
