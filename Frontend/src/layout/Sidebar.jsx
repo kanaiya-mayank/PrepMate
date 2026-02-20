@@ -1,9 +1,9 @@
 /**
- * FILE 4: src/layout/Sidebar.jsx
- * ─────────────────────────────────────────────────────────────────────────────
- * REPLACE YOUR EXISTING FILE WITH THIS
- * Now with proper navigation handling for revision page
- * ─────────────────────────────────────────────────────────────────────────────
+ * FINAL Sidebar.jsx - REPLACE YOUR CURRENT FILE
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Complete sidebar with proper navigation to all pages
+ * All routes match App.jsx structure
+ * ═══════════════════════════════════════════════════════════════════════════
  */
 
 import React from 'react';
@@ -13,62 +13,69 @@ import {
   FolderOpen, CheckSquare, Zap, BookOpen,
   BarChart2, LogOut, Brain
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import { logout } from '../firebase/authService';
 
+// ── Navigation Structure ───────────────────────────────────────────────────
 const NAV_GROUPS = [
   {
     label: 'Overview',
     items: [
-      { id: 'dashboard',   icon: LayoutGrid,    label: 'Dashboard'       },
+      { id: 'dashboard', route: '/dashboard', icon: LayoutGrid, label: 'Dashboard' },
     ],
   },
   {
     label: 'Planning',
     items: [
-      { id: 'yearly',      icon: CalendarDays,  label: 'Yearly Planner'  },
-      { id: 'monthly',     icon: CalendarRange, label: 'Monthly Planner' },
-      { id: 'weekly',      icon: CalendarCheck, label: 'Weekly Planner'  },
-      { id: 'daily',       icon: Target,        label: 'Daily Planner'   },
+      { id: 'yearly',   route: '/yearly',   icon: CalendarDays,  label: 'Yearly Planner'  },
+      { id: 'monthly',  route: '/monthly',  icon: CalendarRange, label: 'Monthly Planner' },
+      { id: 'weekly',   route: '/weekly',   icon: CalendarCheck, label: 'Weekly Planner'  },
+      { id: 'daily',    route: '/daily',    icon: Target,        label: 'Daily Planner'   },
     ],
   },
   {
     label: 'Study',
     items: [
-      { id: 'revision',    icon: RefreshCw,     label: 'Revision',   badge: 3 },
-      { id: 'tests',       icon: ClipboardList, label: 'Tests & Errors'  },
-      { id: 'timers',      icon: Timer,         label: 'Timing Tools'    },
+      { id: 'revision', route: '/revision', icon: RefreshCw,     label: 'Revision', badge: 3 },
+      { id: 'tests',    route: null,        icon: ClipboardList, label: 'Tests & Errors'  },
+      { id: 'timers',   route: null,        icon: Timer,         label: 'Timing Tools'    },
     ],
   },
   {
     label: 'Resources',
     items: [
-      { id: 'resources',   icon: FolderOpen,    label: 'File Manager'    },
+      { id: 'resources', route: null, icon: FolderOpen, label: 'File Manager' },
     ],
   },
   {
     label: 'Productivity',
     items: [
-      { id: 'habits',      icon: CheckSquare,   label: 'Habit Tracker'   },
-      { id: 'distraction', icon: Zap,           label: 'Distraction Log' },
+      { id: 'habits',      route: null, icon: CheckSquare, label: 'Habit Tracker'   },
+      { id: 'distraction', route: null, icon: Zap,         label: 'Distraction Log' },
     ],
   },
   {
     label: 'Reports',
     items: [
-      { id: 'reflection',  icon: BookOpen,      label: 'Reflection'      },
-      { id: 'reports',     icon: BarChart2,     label: 'Weekly Report'   },
+      { id: 'reflection', route: null, icon: BookOpen,   label: 'Reflection'    },
+      { id: 'reports',    route: null, icon: BarChart2,  label: 'Weekly Report' },
     ],
   },
 ];
 
-const Sidebar = ({ isExpanded, setIsExpanded, activeSection, onNavigate }) => {
+// ── Sidebar Component ──────────────────────────────────────────────────────
+const Sidebar = () => {
   const { user } = useAuth();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
-  const displayName  = user?.displayName || user?.email?.split('@')[0] || 'User';
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
+
+  // Determine active route
+  const activeRoute = location.pathname;
 
   const handleLogout = async () => {
     try {
@@ -76,6 +83,15 @@ const Sidebar = ({ isExpanded, setIsExpanded, activeSection, onNavigate }) => {
       navigate('/login', { replace: true });
     } catch (err) {
       console.error('[Sidebar] Logout failed:', err.message);
+    }
+  };
+
+  const handleNavClick = (item) => {
+    if (item.route) {
+      navigate(item.route);
+    } else {
+      // Coming soon - show toast notification
+      console.log(`${item.label} coming soon!`);
     }
   };
 
@@ -91,7 +107,7 @@ const Sidebar = ({ isExpanded, setIsExpanded, activeSection, onNavigate }) => {
         ${isExpanded ? 'w-60 shadow-[4px_0_40px_rgba(0,0,0,0.6)]' : 'w-[68px]'}
       `}
     >
-      {/* Logo */}
+      {/* ── Logo ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/[0.05] shrink-0">
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600
           flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/25">
@@ -105,7 +121,7 @@ const Sidebar = ({ isExpanded, setIsExpanded, activeSection, onNavigate }) => {
         )}
       </div>
 
-      {/* Nav */}
+      {/* ── Navigation ────────────────────────────────────────────────────── */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2"
         style={{ scrollbarWidth: 'none' }}>
         {NAV_GROUPS.map((group) => (
@@ -119,33 +135,41 @@ const Sidebar = ({ isExpanded, setIsExpanded, activeSection, onNavigate }) => {
             ) : <div className="h-3" />}
 
             {group.items.map((item) => {
-              const Icon     = item.icon;
-              const isActive = activeSection === item.id;
+              const Icon = item.icon;
+              const isActive = activeRoute === item.route;
+              const isDisabled = !item.route;
+
               return (
                 <button
                   key={item.id}
-                  onClick={() => onNavigate(item.id)}
+                  onClick={() => handleNavClick(item)}
+                  disabled={isDisabled}
                   title={!isExpanded ? item.label : undefined}
                   className={`
                     w-full flex items-center gap-3.5 px-[18px] py-2.5
                     text-left relative transition-all duration-150 group
                     ${isActive
                       ? 'text-white bg-blue-500/10 border-r-2 border-blue-500'
-                      : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.04]'
+                      : isDisabled
+                        ? 'text-slate-700 cursor-not-allowed opacity-50'
+                        : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.04]'
                     }
                   `}
                 >
                   <Icon size={18} className={`shrink-0 transition-colors
-                    ${isActive ? 'text-blue-400' : 'group-hover:text-slate-300'}`} />
+                    ${isActive ? 'text-blue-400' : isDisabled ? 'text-slate-700' : 'group-hover:text-slate-300'}`} />
+                  
                   {isExpanded && (
                     <span className="text-[13px] font-medium whitespace-nowrap animate-in fade-in duration-150">
                       {item.label}
                     </span>
                   )}
+                  
                   {item.badge && isExpanded && (
                     <span className="ml-auto text-[10px] font-black bg-red-500 text-white
                       px-1.5 py-0.5 rounded-full leading-none">{item.badge}</span>
                   )}
+                  
                   {item.badge && !isExpanded && (
                     <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-red-500" />
                   )}
@@ -156,7 +180,7 @@ const Sidebar = ({ isExpanded, setIsExpanded, activeSection, onNavigate }) => {
         ))}
       </nav>
 
-      {/* User + Logout */}
+      {/* ── User + Logout ──────────────────────────────────────────────────── */}
       <div className="shrink-0 border-t border-white/[0.05] p-3">
         <div className={`flex items-center gap-2.5 p-2 rounded-xl
           ${isExpanded ? 'justify-between' : 'justify-center'}`}>

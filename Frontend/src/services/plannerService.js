@@ -138,7 +138,7 @@ export const mockPlannerData = {
   },
 
   // Monthly: Week → Topics per subject
-  getMonthlyData(subject, month) {
+  getMonthlyData(subject) {
     const topicsBySubject = {
       'Algorithms': {
         week1: ['Recursion', 'Divide & Conquer'],
@@ -200,7 +200,7 @@ export const mockPlannerData = {
   },
 
   // Daily: Task list
-  getDailyTasks(date) {
+  getDailyTasks() {
     return [
       {
         id: 1,
